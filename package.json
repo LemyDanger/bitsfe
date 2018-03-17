@@ -1,0 +1,32 @@
+{
+  "name": "bond",
+  "version": "1.0.0",
+  "description": "Javascript Testaufgabe ======================",
+  "main": "index.js",
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "lodash.template": "^4.4.0",
+    "typescript-safe-router": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.105",
+    "@types/typescript": "^2.0.0",
+    "expose-loader": "^0.7.3",
+    "file-loader": "^1.1.4",
+    "html-webpack-plugin": "^2.30.1",
+    "ts-loader": "^2.3.7",
+    "typescript": "^2.5.2",
+    "webpack": "^3.6.0",
+    "webpack-dev-server": "^2.8.2"
+  },
+  "scripts": {
+    "webpack:dev": "webpack --config webpack.test.js --progress --colors",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "webpack-dev-server",
+    "build:ts": "tsc",
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
+  "author": "",
+  "license": "ISC"
+}
