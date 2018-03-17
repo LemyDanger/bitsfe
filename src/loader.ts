@@ -3,7 +3,11 @@ export interface LoaderPromise {
     data: {};
 };
 
+/**
+ * Loader to load json file vor movies
+ */
 export class JsonLoader {
+
 
     private dataUrl: string;
 
@@ -11,6 +15,10 @@ export class JsonLoader {
         this.dataUrl = dataUrl;
     }
 
+    /**
+     * Load json via xhr
+     * @returns {Promise<LoaderPromise>}
+     */
     public load(): Promise<LoaderPromise> {
 
         let loaded: Promise<LoaderPromise>;
@@ -21,7 +29,6 @@ export class JsonLoader {
             xhr.onload = () => {
                 if (xhr.status === 200) {
                     let data = JSON.parse(xhr.responseText);
-                    console.log("Data", data);
                     resolve({loaded: true, data: data});
                 }
                 else {

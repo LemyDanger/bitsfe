@@ -77,6 +77,9 @@ module.exports = __webpack_require__(1);
 
 "use strict";
 
+/**
+ * Imports and starts the app
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 const app_1 = __webpack_require__(3);
 let app = new app_1.App();
@@ -91,10 +94,17 @@ app.run();
 
 Object.defineProperty(exports, "__esModule", { value: true });
 ;
+/**
+ * Loader to load json file vor movies
+ */
 class JsonLoader {
     constructor(dataUrl) {
         this.dataUrl = dataUrl;
     }
+    /**
+     * Load json via xhr
+     * @returns {Promise<LoaderPromise>}
+     */
     load() {
         let loaded;
         loaded = new Promise((resolve, reject) => {
@@ -103,7 +113,6 @@ class JsonLoader {
             xhr.onload = () => {
                 if (xhr.status === 200) {
                     let data = JSON.parse(xhr.responseText);
-                    console.log("Data", data);
                     resolve({ loaded: true, data: data });
                 }
                 else {
@@ -129,23 +138,57 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const loader_1 = __webpack_require__(2);
 const movie_collection_1 = __webpack_require__(4);
 const info_view_1 = __webpack_require__(5);
+const thumbnail_view_1 = __webpack_require__(19);
+const router_1 = __webpack_require__(17);
 const jsonUrl = './data.json';
+/**
+ * Main App Class
+ */
 class App {
-    constructor() {
-    }
+    /**
+     * Start the app
+     */
     run() {
         let loader = new loader_1.JsonLoader(jsonUrl);
         loader.load()
             .then((response) => {
-            console.log("Done", response);
             this.movies = new movie_collection_1.MovieCollection(response.data);
-            let infoView = new info_view_1.InfoView();
-            console.log("first", this.movies.getFirstMovie());
-            infoView.render(this.movies.getFirstMovie());
+            this.router = new router_1.default();
+            this.router.getEventEmitter().on('route', (data) => {
+                this.dispatch(data);
+            });
+            this.router.listen();
+            this.dispatch();
         })
             .catch(() => {
-            console.log("Kaputt");
+            console.error("Unable to start app");
         });
+    }
+    /**
+     * Builds the ui
+     * @param {any} movie
+     */
+    dispatch(movie = null) {
+        let thumbnailView = new thumbnail_view_1.ThumbnailView();
+        let infoView = new info_view_1.InfoView();
+        let movies = this.movies.getMovies();
+        if (!movie) {
+            movie = this.router.getMovie();
+            if (movie && this.movies.getMovie(movie)) {
+                movie = this.movies.getMovie(movie);
+            }
+            else {
+                movie = this.movies.getFirstMovie();
+            }
+        }
+        else {
+            movie = this.movies.getMovie(movie.movie);
+        }
+        // Todo: Only render view first time, after that just update
+        thumbnailView.render({ movies: movies, active: movie.data.id });
+        if (movie) {
+            infoView.render({ movie: movie, detail: this.movies.getDetailData(movie) });
+        }
     }
 }
 exports.App = App;
@@ -158,19 +201,61 @@ exports.App = App;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+const movie_model_1 = __webpack_require__(20);
+/**
+ * A Collection class for movies
+ */
 class MovieCollection {
     constructor(data) {
         this.movies = {};
         for (let movie of data) {
-            this.movies[movie.id] = movie;
+            this.movies[movie.id] = new movie_model_1.Movie(movie);
         }
     }
+    /**
+     * Determines the first movie in list
+     * @returns {Movie | null}
+     */
     getFirstMovie() {
         let firstKey = Object.keys(this.movies)[0];
         return this.getMovie(firstKey);
     }
+    /**
+     * Gets a movie by id
+     * @param {string} id
+     * @returns {Movie | null}
+     */
     getMovie(id) {
         return this.movies.hasOwnProperty(id) ? this.movies[id] : null;
+    }
+    /**
+     * Returns all movies
+     * @returns {MovieList}
+     */
+    getMovies() {
+        return this.movies;
+    }
+    /**
+     * Generates detail data for a moview
+     * @param {Movie} movie
+     * @returns {{actor: any[]; director: any[]}}
+     */
+    getDetailData(movie) {
+        let data = {
+            actor: [],
+            director: []
+        };
+        let actor = movie.data.actor;
+        let director = movie.data.director;
+        for (let key in this.movies) {
+            if (actor == this.movies[key].data.actor) {
+                data.actor.push(this.movies[key].data.title);
+            }
+            if (director == this.movies[key].data.director) {
+                data.director.push(this.movies[key].data.title);
+            }
+        }
+        return data;
     }
 }
 exports.MovieCollection = MovieCollection;
@@ -184,6 +269,9 @@ exports.MovieCollection = MovieCollection;
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const base_view_1 = __webpack_require__(6);
+/**
+ * Info View Class
+ */
 class InfoView extends base_view_1.BaseView {
     constructor() {
         super();
@@ -203,6 +291,9 @@ exports.InfoView = InfoView;
 Object.defineProperty(exports, "__esModule", { value: true });
 const _ = __webpack_require__(12);
 const $ = __webpack_require__(7);
+/**
+ * Base-Class for views
+ */
 class BaseView {
     setTemplateSelector(templateSelector) {
         this.templateSelector = templateSelector;
@@ -210,16 +301,16 @@ class BaseView {
     setOutputSelector(templateOutputSelector) {
         this.templateOutputSelector = templateOutputSelector;
     }
+    /**
+     *
+     * @param {{}} data
+     */
     render(data) {
-        try {
-            let template = $(this.templateSelector).html();
-            let compiledTemplate = _.template(template);
-            let output = compiledTemplate({ hahn: 'ja' });
-            $(this.templateOutputSelector).html(output);
-        }
-        catch (e) {
-            console.error(e);
-        }
+        this.$view = $(this.templateOutputSelector);
+        let template = $(this.templateSelector).html();
+        let compiledTemplate = _.template(template);
+        let output = compiledTemplate(data);
+        this.$view.html(output);
     }
 }
 exports.BaseView = BaseView;
@@ -27757,6 +27848,442 @@ module.exports = function(module) {
 	}
 	return module;
 };
+
+
+/***/ }),
+/* 14 */,
+/* 15 */,
+/* 16 */,
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const EventEmitter = __webpack_require__(18);
+/**
+ * Simple Router for movie app
+ * Uses a event emitter to propagade change
+ */
+class Router {
+    constructor() {
+        this.emitter = new EventEmitter();
+    }
+    getEventEmitter() {
+        return this.emitter;
+    }
+    router() {
+        this.emitter.emit('route', { movie: this.getMovie() });
+    }
+    getMovie() {
+        let movie = location.hash;
+        movie = movie.substr(1);
+        return movie;
+    }
+    goMovie(movie) {
+        location.hash = movie;
+    }
+    listen() {
+        window.addEventListener('hashchange', () => {
+            this.router();
+        });
+        window.addEventListener('load', () => {
+            this.router();
+        });
+    }
+}
+exports.default = Router;
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;
+(function (factory) {
+    "use strict";
+
+
+    if(true) {
+        !(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) :
+				__WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    }
+    else if(typeof module === "object") {
+        module.exports = factory();
+    }
+    else {
+        window.EventEmitter = factory();
+    }
+
+
+}(function() {
+    "use strict";
+
+
+    var EventEmitter = function EventEmitter() {
+        this._events = {};
+        
+        return this;
+    }
+    
+    
+    
+    
+    /**
+     * Utils
+     *
+     * 'Private' API
+     */
+    
+    var copyArray = function(arr, start, end) {
+        var result = [];
+        if(!start) {
+            start = 0;
+        }
+        if(!end) {
+            end = arr.length;
+        }
+        
+        for(var i = start; i < end; i++) {
+            result.push(arr[i]);
+        }
+        
+        return result;
+    }
+    
+    var execListener = EventEmitter.execListener = function(cb, args) {
+        if(typeof cb === "function") {
+            return cb.apply(cb, args);
+        }
+        else if(typeof cb === "object" && typeof cb.handleEvent === "function") {
+            return cb.handleEvent.apply(cb, args);
+        }
+    }
+    
+    var Regexps = EventEmitter.regexps = {};
+    
+    var eventRegexp = EventEmitter.eventRegexp = function(event) {
+        if(!Regexps[event]) {
+            Regexps[event] = new RegExp("^"+event.replace("*", ".*")+"$");
+        }
+        
+        return Regexps[event];
+    }
+    
+    
+    
+    
+    /**
+     * EventEmitter
+     *
+     * Public API
+     */
+    
+    EventEmitter.prototype.emit =
+    EventEmitter.prototype.fire =
+    EventEmitter.prototype.trigger =
+    function(event) {
+        var args = copyArray(arguments, 1);
+        args.push(event);
+        var regexp1 = eventRegexp(event);
+        
+        outer:
+        for(var ev in this._events) {
+            var regexp2 = eventRegexp(ev);
+            if(regexp2.test(event) || regexp1.test(ev)) {
+                var listeners = this._events[ev];
+                for(var i = 0, len = listeners.length; i < len; i++) {
+                    var res = execListener(listeners[i], args, event);
+                    if(res === false) {
+                        break outer;
+                    }
+                }
+            }
+        }
+        
+        return this;
+    }
+    
+    EventEmitter.prototype.on =
+    EventEmitter.prototype.addListener =
+    EventEmitter.prototype.addEventListener =
+    function(event, cb) {
+        if(!this._events[event]) {
+            this._events[event] = [];
+        }
+        this._events[event].push(cb);
+        eventRegexp(event);
+        this.emit("newListener", event, cb);
+        
+        return this;
+    }
+    
+    EventEmitter.prototype.once =
+    EventEmitter.prototype.addOnceListener =
+    function(event, cb) {
+        var self = this;
+        var func = function() {
+            execListener(cb, arguments);
+            self.removeListener(event, this);
+        }
+        this.addListener(event, func);
+        
+        
+        return this;
+    }
+    
+    EventEmitter.prototype.many =
+    EventEmitter.prototype.addManyListener =
+    function(event, cb, amount) {
+        var self = this;
+        var count = 0;
+        var func = function() {
+            execListener(cb, arguments);
+            count++;
+            if(count === amount) {
+                self.removeListener(event, this);
+            }
+        }
+        this.addListener(event, func);
+        
+        return this;
+    }
+    
+    EventEmitter.prototype.off =
+    EventEmitter.prototype.removeListener =
+    EventEmitter.prototype.removeEventListener =
+    function(event, cb, all) {
+        var regexp = eventRegexp(event);
+        if(all) {
+            for(var ev in this._events) {
+                if(regexp.test(ev)) {
+                    var listeners = this._events[ev];
+                    var result = [];
+                    for(var i = 0, len = listeners.length; i < len; i++) {
+                        if(listeners[i] !== cb) {
+                            result.push(listeners[i]);
+                        }
+                    }
+                    this._events[ev] = result;
+                }
+            }
+        }
+        else {
+            for(var ev in this._events) {
+                if(regexp.test(ev)) {
+                    var index = this._events[ev].indexOf(cb);
+                    if(index > -1) {
+                        this._events[ev].splice(index, 1);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return this;
+    }
+    
+    EventEmitter.prototype.offAll =
+    EventEmitter.prototype.removeAllListeners =
+    function(event) {
+        if(event) {
+            var regexp = eventRegexp(event);
+            for(var ev in this._events) {
+                if(regexp.test(ev)) {
+                    this._events[ev] = [];
+                }
+            }
+        }
+        else {
+            this._events = {};
+        }
+        
+        return this;
+    }
+    
+    EventEmitter.prototype.count =
+    EventEmitter.prototype.countListeners =
+    function(event) {
+        var sum = 0;
+        
+        if(event) {
+            var regexp1 = eventRegexp(event);
+            for(var ev in this._events) {
+                var regexp2 = eventRegexp(ev);
+                if(regexp2.test(event) || regexp1.test(ev)) {
+                    sum += this._events[ev].length;
+                }
+            }
+        }
+        else {
+            for(var ev in this._events) {
+                sum += this._events[ev].length;
+            }
+        }
+        
+        return sum;
+    }
+    
+    EventEmitter.prototype.listeners =
+    EventEmitter.prototype.getListeners =
+    function(event) {
+        var listeners = [];
+        
+        if(event) {
+            var regexp1 = eventRegexp(event);
+            for(var ev in this._events) {
+                var regexp2 = eventRegexp(ev);
+                if(regexp2.test(event) || regexp1.test(ev)) {
+                    listeners.push.apply(listeners, this._events[ev]);
+                }
+            }
+        }
+        else {
+            var listeners = [];
+            for(var ev in this._events) {
+                listeners.push.apply(listeners, this._events[ev]);
+            }
+        }
+        
+        return listeners;
+    }
+    
+    
+    
+    
+    
+    
+    /**
+     *  Namespace
+     *
+     * Create a namespace / scope on EventEmitters
+     */
+    
+    var Namespace = function(emitter, scope) {
+        var namespace = {
+            emitter: emitter,
+            scope: scope
+        };
+        scope += ":";
+        
+        
+        namespace.emit = function(event) {
+            arguments[0] = scope+event;
+            emitter.emit.apply(emitter, arguments);
+            return this;
+        }
+        
+        namespace.on = namespace.addListener = namespace.addEventListener = function(event, cb) {
+            emitter.addListener(scope+event, cb);
+            return this;
+        }
+        
+        namespace.once = namespace.addOnceListener = function(event, cb) {
+            emitter.addOnceListener(scope+event, cb);
+            return this;
+        }
+        
+        namespace.many = namespace.addManyListener = function(event, cb, amount) {
+            emitter.addManyListener(scope+event, cb, amount);
+            return this;
+        }
+        
+        namespace.off = namespace.removeListener = namespace.removeEventListener = function(event, cb) {
+            emitter.removeListener(scope+event, cb);
+            return this;
+        }
+        
+        namespace.offAll = namespace.removeAllListeners = function(event) {
+            emitter.removeAllListeners(scope + (event ? event : "*"));
+            return this;
+        }
+        
+        namespace.count = namespace.countListeners = function(event) {
+            return emitter.countListeners(scope + (event ? event : "*"));
+        }
+        
+        namespace.listeners = namespace.getListeners = function(event) {
+            return emitter.getListeners(scope + (event ? event : "*"));
+        }
+        
+        namespace.namespace = function(name) {
+            return Namespace(emitter, scope+name);
+        }
+        
+        
+        return namespace;
+    }
+    
+    
+    EventEmitter.prototype.namespace = function(scope) {
+        return Namespace(this, scope);
+    }
+    
+    
+    
+    
+    
+    return EventEmitter;
+
+
+}));
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const base_view_1 = __webpack_require__(6);
+/**
+ * Thumbnail View Class
+ */
+class ThumbnailView extends base_view_1.BaseView {
+    constructor() {
+        super();
+        this.setTemplateSelector('#thumbnail-template');
+        this.setOutputSelector('main ul.thumbnails');
+    }
+    render(data) {
+        super.render(data);
+        this.update(data);
+    }
+    /**
+     * Deselect all and select aktive movie
+     * @param {{}} data
+     */
+    update(data) {
+        this.$view.find('li.thumbnail.highlighted').removeClass('highlighted');
+        if (data['active']) {
+            this.$view.find('[data-id="' + data['active'] + '"]').addClass('highlighted');
+        }
+    }
+}
+exports.ThumbnailView = ThumbnailView;
+
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * A very simple model. All movie data are in one attribute object
+ */
+class Movie {
+    constructor(data) {
+        let parts;
+        // Todo: Hard casting, make a better check
+        this.data = data;
+    }
+}
+exports.Movie = Movie;
 
 
 /***/ })

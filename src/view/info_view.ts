@@ -1,6 +1,8 @@
 import {BaseView} from "./base_view";
 
-
+/**
+ * Info View Class
+ */
 export class InfoView extends BaseView {
 
     constructor() {
@@ -10,7 +12,6 @@ export class InfoView extends BaseView {
 
 
     }
-
 
 
 }

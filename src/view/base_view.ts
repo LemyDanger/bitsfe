@@ -1,10 +1,24 @@
 import * as _ from 'lodash';
 import * as $ from 'jquery';
 
+/**
+ * Base-Class for views
+ */
 export abstract class BaseView {
 
-    protected template: string;
+    /**
+     * cached output element
+     */
+    protected $view: JQuery;
+
+    /**
+     * Selector to load the template
+     */
     protected templateSelector: string;
+
+    /**
+     * Selector to query the output element
+     */
     protected templateOutputSelector: string;
 
 
@@ -16,18 +30,19 @@ export abstract class BaseView {
         this.templateOutputSelector = templateOutputSelector;
     }
 
+    /**
+     *
+     * @param {{}} data
+     */
     public render(data: {}) {
-        try {
-            let template = $(this.templateSelector).html();
-            let compiledTemplate = _.template(template);
-            let output = compiledTemplate({hahn : 'ja'});
-            $(this.templateOutputSelector).html(output);
-        } catch(e) {
-            console.error(e);
-        }
+        this.$view = $(this.templateOutputSelector);
+        let template = $(this.templateSelector).html();
+
+        let compiledTemplate = _.template(template);
+        let output = compiledTemplate(data);
+        this.$view.html(output);
+
     }
-
-
 
 
 }

@@ -5,10 +5,11 @@
   "main": "index.js",
   "dependencies": {
     "jquery": "^3.3.1",
+    "last-eventemitter": "^1.1.1",
     "lodash.template": "^4.4.0",
-    "typescript-safe-router": "^1.0.1"
   },
   "devDependencies": {
+    "@types/jquery": "^3.3.1",
     "@types/lodash": "^4.14.105",
     "@types/typescript": "^2.0.0",
     "expose-loader": "^0.7.3",

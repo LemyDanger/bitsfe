@@ -21,64 +21,54 @@
 			</div>
 
 			<ul class="thumbnails">
-				<li class="thumbnail highlighted"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
-				<li class="thumbnail"><img src="http://placehold.it/185x278/0092dd/fff"></li>
 			</ul>
 		</main>
 	</body>
 
-	<script type="text/template" id="hahn-template">
-		Hallo <%= hahn %>
-		</script>
+	<script type="text/template" id="thumbnail-template">
+		<% for(var movie in movies) { %>
+			<li class="thumbnail highlighted" data-id="<%= movie %>"><a href="#<%= movie %>"><img src="./img/<%= movies[movie].data.poster %>"></a></li>
+		<% } %>
+	</script>
 
 
 	<script type="text/template" id="info-template">
 		<div class="credits">
 			<div class="actor">
 				<i class="glyphicon glyphicon-user"></i>
-				<span>Sean Connery</span>
+				<span><%= movie.data.actor %></span>
 				<div class="popover-wrapper">
 					<div class="popover bottom">
 						<div class="arrow"></div>
-						<h3 class="popover-title">More Movies with Sean Connery</h3>
+						<h3 class="popover-title">More Movies with <%= movie.data.actor %></h3>
 						<div class="popover-content">
-							<p>Film1, Film2, Film3</p>
+							<p><%= detail.actor.join(', ') %></p>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="director">
 				<i class="glyphicon glyphicon-film"></i>
-				<span>Terence Young</span>
+				<span><%= movie.data.director %></span>
 				<div class="popover-wrapper">
 					<div class="popover bottom">
 						<div class="arrow"></div>
-						<h3 class="popover-title">Movies directed by Terence Young</h3>
+						<h3 class="popover-title">Movies directed by <%= movie.data.director %></h3>
 						<div class="popover-content">
-							<p>Film1, Film2, Film3</p>
+							<p><p><%= detail.director.join(', ') %></p></p>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<h3 class="title">Dr. No <small>(1962)</small></h3>
-		<h4 class="tagline">NOW meet the most extraordinary gentleman spy in all fiction!</h4>
-		<img src="http://placehold.it/185x278/0092dd/fff">
+		<h3 class="title"><%= movie.data.title %> <small><%= movie.data.year %></small></h3>
+		<h4 class="tagline"><%= movie.data.tagline %></h4>
+		<img src="./img/<%= movie.data.poster %>">
 		<p class="synopsis">
-			When Strangways, the British SIS Station Chief in Jamaica goes missing, MI6 send James Bond - Agent 007 to investigate. His investigation leads him to the mysterious Crab Key; the secret base of Dr No who he suspects is trying to sabotage the American space program using a radio beam. With the assistance of local fisherman Quarrel, who had been helping Strangways, Bond sneaks onto Crab Key where he meets the beautiful Honey Ryder. Can the three of them defeat an army of henchmen and a "fire breathing dragon" in order to stop Dr No, save the space program and get revenge for Strangways? Dr. No is the first film of legendary James Bond series starring Sean Connery in the role of Fleming's British super agent.
+			<%= movie.data.synopsis %>
 		</p>
 		<p class="source">
-			Source: <a href="http://www.themoviedb.org/movie/646-dr-no">themoviedb.org</a>
+			Source: <a href="<%= movie.data.source %>">themoviedb.org</a>
 		</p>
 
 	</script>
