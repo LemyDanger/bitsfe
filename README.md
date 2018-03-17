@@ -37,3 +37,10 @@ kombinieren. Ein Tipp: planen Sie für den Schluss ein wenig Zeit ein, um Ihre
 Ansätze schriftlich zu erläutern.
 
 Und jetzt: Viel Spaß beim Entwickeln und viel Glück!
+
+Build
+=====
+
+Run
+npm install
+npm run build
