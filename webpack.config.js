@@ -19,9 +19,7 @@ module.exports = {
     module: {
         rules : [
             // all files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'
-            { test: /\.tsx?$/, loader: "ts-loader" },
-            { test: /\.(png)$/, use: ['file-loader?name=assets/[name].[ext]?[hash]'] },
-            { test: /\.(mp3)$/, use: ['file-loader?name=assets/[name].[ext]?[hash]'] }
+            { test: /\.tsx?$/, loader: "ts-loader" }
         ]
     },
     resolve: {
@@ -30,9 +28,7 @@ module.exports = {
         }
     },
     plugins: [
-        new HtmlWebpackPlugin({
-            title: 'Bond Base'
-        })
+
     ],
     devServer: {
         contentBase: path.join(__dirname)+'/dist',
